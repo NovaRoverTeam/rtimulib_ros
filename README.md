@@ -1,50 +1,27 @@
-# rtimulib_ros
+# IMU Unit ROS Node
+This code is a slight modification of Romain Reigner's ROS node for use with RTIMU Lib, which can be found here: https://github.com/romainreignier/rtimulib_ros
+This modified code is desgined to be used by Nova Rover for URC 2018.
 
-A simple package to use the nice RTIMULib (unfortunately , now unmaintained) from [RichardsTech](https://richardstechnotes.wordpress.com/) in ROS.
+The IMU unit being used: http://www.robotshop.com/en/imu-10-dof-16g-3-axis-accelerometer-2000--s-gyromagnetometerbarometer-c.html
 
-The RTIMULib needs to be installed. It can be found here : <https://github.com/RTIMULib/RTIMULib>
+## Dependencies:
 
-## Topic
-
-The fused orientation data are published on the `imu` topic.
-
-## Calibration
-
-The calibration needs to be performed by the `RTIMULibCal` utility provided by the library.
-In case of a several devices configuration, `RTIMULibCal` can be launched with an argument to change the name of the calibration file.
-
-For example:
-
-    $ RTIMULibCal toto
-
-Will produce the `toto.ini` file in the current directory.
-
-Then, the file calibration file `.ini` needs to be placed in the `config` directory of the package.
-
-If the calibration file has a custom name, it must be specified with the `calibration_file_name` parameter (without the `.ini` extension).
-
-## Launch
-
-The node has to be launched with the `rtimulib_ros.launch` in order to load the calibration file.
-
-    $ roslaunch rtimulib_ros rtimulib_ros.launch
+- RTIMULib2 (https://github.com/RTIMULib/RTIMULib2)
+- libRTIMULib.so must be copied and pasted from the include/RTIMULib/build directory into <catkin workspace>/devel/lib
 
 
-## Parameters
+## Physical Connections:
 
-- `calibration_file_path`: (**Mandatory**) used to dynamically find the package config directory. Does not need to be modified.
-- `calibration_file_path`: (*Optional*) used to use a different calibration file name than `RTIMULib.ini`. **Do not include the `.ini` extension.**
-- `frame_id`: (Optional) used to change the default `imu_link` frame.
+The module should be connected to the Raspberry Pi as such:
 
-## Visualization
+  IMU Module:     Raspberry Pi:
+  * Vcc        -->  3.3V
+  * GND        -->  Ground
+  * SDA         -->  SDA1
+  * SCL         -->  SCL1
 
-The data from the IMU can be seen via the 3D visualization node from the `razor_imu_9dof` package. But this package subscribe to the `/imu` topic so the `topic_name` parameter of the must be set to `/imu`.
+## Publications:
 
-Install it :
-
-    $ sudo apt-get install ros-kinetic-razor-imu-9dof
- 
- Launch the visualization node :
-
-    $ roslaunch razor_imu_9dofs razor-display.launch
-
+Topic:       **/rtimulib_node/imu**<br />
+Msg type:    sensor_msgs/imu<br />
+Description: Outputs orientation, angular velocity (from gyro) and linear acceleration in the x, y and z directions.
