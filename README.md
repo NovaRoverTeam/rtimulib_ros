@@ -6,7 +6,7 @@ The IMU unit being used: http://www.robotshop.com/en/imu-10-dof-16g-3-axis-accel
 
 ## Dependencies:
 
-- RTIMULib2 (https://github.com/RTIMULib/RTIMULib2)
+- RTIMULib2 (modified to include MPU9255) (https://github.com/Nick-Currawong/RTIMULib2)
 - libRTIMULib.so must be copied and pasted from the include/RTIMULib/build directory into <catkin workspace>/devel/lib
 
 
