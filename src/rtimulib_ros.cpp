@@ -26,24 +26,23 @@
 
 #include <RTIMULib.h>
 #include <ros/ros.h>
-#include <sensor_msgs/Imu.h>
-
-static const double G_TO_MPSS = 9.80665;
+#include <math.h>
+#include <std_msgs/Int32.h>
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "rtimulib_node");
     ROS_INFO("Imu driver is now running");
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh;
 
     std::string calibration_file_path;
-    calibration_file_path = "/home/andrew/catkin_ws/src/rtimulib_ros/config";
+    calibration_file_path = "/home/nova/catkin_ws/src/rtimulib_ros/config";
 
     std::string calibration_file_name = "RTIMULib";
 
     std::string frame_id = "imu_link";
 
-    ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("imu", 1);
+    ros::Publisher bearingPub = nh.advertise<std_msgs::Int32>("/bearing",1);
 
     // Load the RTIMULib.ini config file
     RTIMUSettings *settings = new RTIMUSettings(calibration_file_path.c_str(),
@@ -61,36 +60,47 @@ int main(int argc, char **argv)
     imu->IMUInit();
 
     // Set the Fusion coefficient
-    imu->setSlerpPower(0.02);
+    //imu->setSlerpPower(0.02);
     // Enable the sensors
-    imu->setGyroEnable(true);
+    //imu->setGyroEnable(true);
     imu->setAccelEnable(true);
     imu->setCompassEnable(true);
 
-    sensor_msgs::Imu imu_msg;
     while (ros::ok())
     {
         if (imu->IMURead())
         {
             RTIMU_DATA imu_data = imu->getIMUData();
 
-            imu_msg.header.stamp = ros::Time::now();
-            imu_msg.header.frame_id = frame_id;
+            std_msgs::Int32 bearing;
 
+            float accel_x = imu_data.accel.x();
+            float accel_y = imu_data.accel.y();
+            float mag_x = imu_data.compass.x();
+            float mag_y = imu_data.compass.y();
+            float centre_x = -53.5778017315*accel_x + 30.1703329121;
+            float centre_y = -43.1731374079*accel_y + 6.4688462339;
+
+            float bearing_radian = 1.5*M_PI - atan2(mag_y-centre_y,mag_x-centre_x);
+            int bearing_degree = int(bearing_radian*180/M_PI) % 360;
+	    bearing.data = bearing_degree;
+            bearingPub.publish(bearing);
+
+            /*
             imu_msg.orientation.x = imu_data.fusionQPose.x(); 
             imu_msg.orientation.y = imu_data.fusionQPose.y(); 
             imu_msg.orientation.z = imu_data.fusionQPose.z(); 
             imu_msg.orientation.w = imu_data.fusionQPose.scalar(); 
 
             imu_msg.angular_velocity.x = imu_data.gyro.x();
+            //ROS_INFO_STREAM(imu_data.gyro.x());
             imu_msg.angular_velocity.y = imu_data.gyro.y();
             imu_msg.angular_velocity.z = imu_data.gyro.z();
 
             imu_msg.linear_acceleration.x = imu_data.accel.x() * G_TO_MPSS;
             imu_msg.linear_acceleration.y = imu_data.accel.y() * G_TO_MPSS;
             imu_msg.linear_acceleration.z = imu_data.accel.z() * G_TO_MPSS;
-
-            imu_pub.publish(imu_msg);
+            */
         }
         ros::spinOnce();
         ros::Duration(imu->IMUGetPollInterval() / 1000.0).sleep();

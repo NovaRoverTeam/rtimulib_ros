@@ -3,12 +3,19 @@ project(rtimulib_ros)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  sensor_msgs
+  std_msgs
+  message_generation
 )
+
+add_message_files(
+	FILES
+)
+
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
     LIBRARIES rtimulib_ros
-    CATKIN_DEPENDS roscpp sensor_msgs
+    CATKIN_DEPENDS roscpp std_msgs message_runtime
 )
 
 include_directories(
@@ -18,3 +25,4 @@ include_directories(
 add_executable(rtimulib_ros src/rtimulib_ros.cpp)
 
 target_link_libraries(rtimulib_ros ${catkin_LIBRARIES} RTIMULib)
+
