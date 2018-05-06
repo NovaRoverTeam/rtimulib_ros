@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "rtimulib_node");
     ROS_INFO("Imu driver is now running");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh ("/");
 
     std::string calibration_file_path;
     calibration_file_path = "/home/nova/catkin_ws/src/rtimulib_ros/config";
