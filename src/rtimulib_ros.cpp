@@ -29,11 +29,18 @@
 #include <math.h>
 #include <std_msgs/Int32.h>
 
+#define LOOP_HERTZ 10
+#define FILTER_WINDOW_SIZE 5
+
+int window[FILTER_WINDOW_SIZE];
+int i = 0;
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "rtimulib_node");
     ROS_INFO("Imu driver is now running");
     ros::NodeHandle nh ("/");
+    ros::Rate loop_rate(LOOP_HERTZ);
 
     std::string calibration_file_path;
     calibration_file_path = "/home/nova/catkin_ws/src/rtimulib_ros/config";
@@ -83,7 +90,14 @@ int main(int argc, char **argv)
 
             float bearing_radian = 1.5*M_PI - atan2(mag_y-centre_y,mag_x-centre_x);
             int bearing_degree = int(bearing_radian*180/M_PI) % 360;
-	    bearing.data = bearing_degree;
+
+            window[i++] = bearing_degree;
+            if (i == FILTER_WINDOW_SIZE) i=0;
+
+            int sum = 0;
+            for (int j = 0; j < FILTER_WINDOW_SIZE; j++) sum += window[j];
+
+	        bearing.data = sum / FILTER_WINDOW_SIZE;
             bearingPub.publish(bearing);
 
             /*
@@ -93,7 +107,6 @@ int main(int argc, char **argv)
             imu_msg.orientation.w = imu_data.fusionQPose.scalar(); 
 
             imu_msg.angular_velocity.x = imu_data.gyro.x();
-            //ROS_INFO_STREAM(imu_data.gyro.x());
             imu_msg.angular_velocity.y = imu_data.gyro.y();
             imu_msg.angular_velocity.z = imu_data.gyro.z();
 
@@ -103,7 +116,7 @@ int main(int argc, char **argv)
             */
         }
         ros::spinOnce();
-        ros::Duration(imu->IMUGetPollInterval() / 1000.0).sleep();
+        loop_rate.sleep();
     }
     return 0;
 }
