@@ -88,6 +88,7 @@ int main(int argc, char **argv)
             float centre_x = -53.5778017315*accel_x + 30.1703329121;
             float centre_y = -43.1731374079*accel_y + 6.4688462339;
 
+            //ROS_INFO("%f %f", mag_x, mag_y);
             float bearing_radian = 1.5*M_PI - atan2(mag_y-centre_y,mag_x-centre_x);
             int bearing_degree = int(bearing_radian*180/M_PI) % 360;
 
@@ -97,7 +98,8 @@ int main(int argc, char **argv)
             int sum = 0;
             for (int j = 0; j < FILTER_WINDOW_SIZE; j++) sum += window[j];
 
-	        bearing.data = sum / FILTER_WINDOW_SIZE;
+            bearing.data = sum / FILTER_WINDOW_SIZE;
+            //bearing.data = bearing_degree;
             bearingPub.publish(bearing);
 
             /*
